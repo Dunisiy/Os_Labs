@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SRC_DIR="/home/denis/Downloads/check"
-DST_DIR="/home/denis/Downloads/copy"
+SRC_DIR="$HOME/Downloads/check"
+DST_DIR="$HOME/Downloads/copy"
 
 FILES=("4KB.zip" "64KB.zip" "512KB.zip" "5MB.zip" "10MB.zip" "20MB.zip" "50MB.zip" "100MB.zip" "200MB.zip" "512MB.zip" "1GB.zip")
 N_VALUES=(1 2 4 8 16 24 32)
