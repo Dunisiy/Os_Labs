@@ -1,47 +1,53 @@
 #!/bin/bash
 
-# Скрипт для проверки созданных файлов
+# Универсальные пути
 SRC_DIR="$HOME/Downloads/check"
+DST_DIR="$HOME/Downloads/copy"
 
-echo "=== Проверка ZIP-файлов в $SRC_DIR ==="
-echo ""
+# Создаем директории
+mkdir -p "$SRC_DIR" "$DST_DIR"
 
-# Ожидаемые размеры
-declare -A EXPECTED_SIZES=(
-    ["4KB.zip"]=4096
-    ["64KB.zip"]=65536
-    ["512KB.zip"]=524288
-    ["5MB.zip"]=5242880
-    ["10MB.zip"]=10485760
-    ["20MB.zip"]=20971520
-    ["50MB.zip"]=52428800
-    ["100MB.zip"]=104857600
-    ["200MB.zip"]=209715200
-    ["512MB.zip"]=536870912
-    ["1GB.zip"]=1073741824
+# Список файлов
+FILES=(
+    "4KB:4096"
+    "64KB:65536"
+    "512KB:524288"
+    "5MB:5242880"
+    "10MB:10485760"
+    "20MB:20971520"
+    "50MB:52428800"
+    "100MB:104857600"
+    "200MB:209715200"
+    "512MB:536870912"
+    "1GB:1073741824"
 )
 
-for file in "${!EXPECTED_SIZES[@]}"; do
-    filepath="$SRC_DIR/$file"
-    expected="${EXPECTED_SIZES[$file]}"
+echo "Создание ZIP-файлов в $SRC_DIR"
+
+# Создаем файлы
+for file_info in "${FILES[@]}"; do
+    IFS=':' read -r name size <<< "$file_info"
+    filename="$SRC_DIR/${name}.zip"
     
-    if [ -f "$filepath" ]; then
-        # Получаем размер файла в байтах
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            actual=$(stat -f%z "$filepath")
-        else
-            actual=$(stat -c%s "$filepath")
-        fi
-        
-        actual_display=$(du -h "$filepath" | cut -f1)
-        expected_display=$(numfmt --to=iec "$expected" 2>/dev/null || echo "$expected")
-        
-        if [ "$actual" -eq "$expected" ]; then
-            echo "✓ $file: $actual_display (OK)"
-        else
-            echo "✗ $file: $actual_display (ожидалось: $expected_display)"
-        fi
-    else
-        echo "✗ $file: не найден"
-    fi
+    echo -n "Создаю ${name}.zip... "
+    
+    # Создаем временный файл со случайными данными
+    temp_file="/tmp/temp_$$.bin"
+    dd if=/dev/urandom of="$temp_file" bs=1M count=$((size / 1048576)) 2>/dev/null
+    remainder=$((size % 1048576))
+    [ $remainder -gt 0 ] && dd if=/dev/urandom of="$temp_file" bs=1 count=$remainder seek=$((size - remainder)) 2>/dev/null
+    
+    # Создаем ZIP без сжатия
+    zip -0 -j "$filename" "$temp_file" >/dev/null 2>&1
+    
+    # Удаляем временный файл
+    rm -f "$temp_file"
+    
+    echo "готово ($(du -h "$filename" | cut -f1))"
 done
+
+echo ""
+echo "Готово! Файлы в $SRC_DIR:"
+ls -lh "$SRC_DIR"/*.zip
+echo ""
+echo "Общий размер: $(du -sh "$SRC_DIR" | cut -f1)"
