@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SRC="/home/denis/Downloads/check/512MB.zip"
-DST_DIR="/home/denis/Downloads/copy"
+SRC_DIR="$HOME/Downloads/check"
+DST_DIR="$HOME/Downloads/copy"
 PROGRAM="./copy_aio"
 
 RUNS=5
